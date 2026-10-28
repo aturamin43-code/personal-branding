@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PersonaAI — AI Personal Branding & Career Assistant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: {
+              50: '#f0f4f8',
+              100: '#d9e2ec',
+              200: '#bcccdc',
+              300: '#9fb3c8',
+              400: '#829ab1',
+              500: '#627d98',
+              600: '#486581',
+              700: '#334e68',
+              800: '#243b53',
+              900: '#0F172A',
+              950: '#090d16'
+            },
+            accent: {
+              blue: '#2563EB',
+              teal: '#0D9488',
+              amber: '#D97706',
+              emerald: '#059669'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    /* Custom scrollbar for sleeker UI */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0F172A; }
+    ::-webkit-scrollbar-thumb { background: #334e68; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #486581; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col md:flex-row antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+  <!-- Mobile Top Bar -->
+  <header class="md:hidden bg-navy-900 border-b border-slate-800 p-4 flex justify-between items-center sticky top-0 z-40">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-lg text-white shadow-lg shadow-blue-500/30">P</div>
+      <span class="font-bold text-lg tracking-wide text-white">Persona<span class="text-blue-500">AI</span></span>
+    </div>
+    <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="p-2 text-slate-300 hover:text-white focus:outline-none">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    </button>
+  </header>
+
+  <!-- Sidebar Navigation -->
+  <aside id="sidebar" class="hidden md:flex flex-col w-full md:w-64 bg-navy-900 border-r border-slate-800 p-5 shrink-0 transition-all duration-300 z-30">
+    <div class="flex items-center space-x-3 mb-8">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-blue-500/20">P</div>
+      <div>
+        <h1 class="font-bold text-lg text-white tracking-wide">Persona<span class="text-blue-500">AI</span></h1>
+        <p class="text-xs text-slate-400">Branding & Career Copilot</p>
+      </div>
+    </div>
+
+    <!-- Mode Badge -->
+    <div class="mb-6 px-3 py-2 rounded-lg bg-slate-800/80 border border-slate-700/50 flex items-center justify-between text-xs">
+      <span class="text-slate-400 font-medium">Engine Mode</span>
+      <span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold tracking-wider text-[10px]">DEMO (HEURISTIC)</span>
+    </div>
+
+    <nav class="space-y-1.5 flex-1">
+      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+        <span>Dashboard</span>
+      </button>
+
+      <button onclick="switchTab('profile')" id="nav-profile" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        <span>Profil Saya</span>
+      </button>
+
+      <button onclick="switchTab('identity')" id="nav-identity" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 012-2h2a2 2 0 012 2v1m-6 0h6"></path></svg>
+        <span>Identitas Profesional</span>
+      </button>
+
+      <button onclick="switchTab('content')" id="nav-content" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+        <span>Studio Konten</span>
+      </button>
+
+      <button onclick="switchTab('interview')" id="nav-interview" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path></svg>
+        <span>Simulasi Wawancara</span>
+      </button>
+
+      <button onclick="switchTab('evaluation')" id="nav-evaluation" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+        <span>Evaluasi Personal Branding</span>
+      </button>
+
+      <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        <span>Pengaturan</span>
+      </button>
+    </nav>
+
+    <!-- User Profile Summary Footer -->
+    <div class="pt-4 border-t border-slate-800 flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-slate-300" id="sidebar-avatar-initial">U</div>
+      <div class="overflow-hidden">
+        <p class="text-xs font-semibold text-white truncate" id="sidebar-user-name">Pengguna</p>
+        <p class="text-[11px] text-slate-400 truncate" id="sidebar-user-role">Belum Diatur</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 p-4 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+
+    <!-- 1. DASHBOARD MODULE -->
+    <section id="tab-dashboard" class="tab-content space-y-6">
+      <div class="bg-gradient-to-r from-navy-900 via-slate-900 to-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-xl">
+        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10 max-w-3xl">
+          <span class="inline-block px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-semibold border border-blue-500/20 mb-3">Selamat Datang Kembali</span>
+          <h2 class="text-2xl md:text-3xl font-bold text-white mb-2" id="dash-greeting">Halo, Pengguna!</h2>
+          <p class="text-slate-400 text-sm md:text-base leading-relaxed" id="dash-summary">Lengkapi profil Anda untuk mengaktifkan mesin sintetis AI dan optimasikan personal branding Anda hari ini.</p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <button onclick="switchTab('profile')" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-600/30 flex items-center space-x-2">
+              <span>Lengkapi Profil</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </button>
+            <button onclick="switchTab('interview')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-sm font-semibold transition-all">Mulai Simulasi Wawancara</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Stats & Readiness Matrix -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-5">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Kelengkapan Profil</span>
+            <span class="p-2 rounded-lg bg-blue-500/10 text-blue-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></span>
+          </div>
+          <div class="text-3xl font-bold text-white mb-2" id="dash-stat-profile">0%</div>
+          <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+            <div id="dash-stat-bar-profile" class="bg-blue-500 h-full w-0 transition-all duration-500"></div>
+          </div>
+        </div>
+
+        <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-5">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Skor Personal Branding</span>
+            <span class="p-2 rounded-lg bg-teal-500/10 text-teal-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
+          </div>
+          <div class="text-3xl font-bold text-white mb-2" id="dash-stat-brand">0 / 100</div>
+          <p class="text-xs text-slate-400" id="dash-brand-label">Belum Dievaluasi</p>
+        </div>
+
+        <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-5">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Sesi Wawancara Selesai</span>
+            <span class="p-2 rounded-lg bg-amber-500/10 text-amber-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path></svg></span>
+          </div>
+          <div class="text-3xl font-bold text-white mb-2" id="dash-stat-interview">0</div>
+          <p class="text-xs text-slate-400">Latihan membuat Anda semakin matang</p>
+        </div>
+      </div>
+
+      <!-- Recommendation Quick Links -->
+      <div class="bg-navy-900/50 border border-slate-800 rounded-2xl p-6">
+        <h3 class="text-base font-semibold text-white mb-4">Langkah Strategis Selanjutnya</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="dash-action-cards">
+          <!-- Dynamic cards generated via JS -->
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 2. PROFIL SAYA MODULE -->
+    <section id="tab-profile" class="tab-content space-y-6 hidden">
+      <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-white">Profil & Keahlian Saya</h2>
+          <p class="text-slate-400 text-sm">Data ini menjadi fondasi sintesis untuk seluruh modul PersonaAI.</p>
+        </div>
+        <button onclick="saveProfileData()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-600/30 flex items-center space-x-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          <span>Simpan Profil</span>
+        </button>
+      </div>
+
+      <form id="profile-form" class="space-y-6">
+        <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <h3 class="text-base font-semibold text-blue-400 border-b border-slate-800 pb-2">Informasi Dasar</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Lengkap *</label>
+              <input type="text" id="prof-fullname" placeholder="Contoh: Maya Kartika" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Status Profesi *</label>
+              <select id="prof-status" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
+                <option value="">Pilih Status</option>
+                <option value="Mahasiswa/Fresh Graduate">Mahasiswa / Fresh Graduate</option>
+                <option value="Professional Early-Career">Professional Early-Career (1-3 tahun)</option>
+                <option value="Mid-Career Professional">Mid-Career Professional (3-7 tahun)</option>
+                <option value="Senior / Expert">Senior / Specialist / Expert (7+ tahun)</option>
+                <option value="Freelancer / Consultant">Freelancer / Independent Consultant</option>
+                <option value="Entrepreneur / Founder">Entrepreneur / Founder</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Bidang / Industri Utama *</label>
+              <input type="text" id="prof-field" placeholder="Contoh: Digital Marketing, Software Engineering, Design" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Target Posisi / Peran Impian</label>
+              <input type="text" id="prof-target-role" placeholder="Contoh: Lead UX Designer, Senior Product Manager" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <h3 class="text-base font-semibold text-teal-400 border-b border-slate-800 pb-2">Kompetensi & Nilai Unggulan</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Keahlian Utama (Hard Skills) - *Pisahkan dengan koma*</label>
+              <input type="text" id="prof-hard-skills" placeholder="Contoh: Data Analysis, Python, SEO Strategy, Financial Modeling" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-teal-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Soft Skills & Karakteristik Kerja - *Pisahkan dengan koma*</label>
+              <input type="text" id="prof-soft-skills" placeholder="Contoh: Public Speaking, Critical Thinking, Cross-team Leadership" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-teal-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Pencapaian Utama / Portofolio Signifikan</label>
+              <textarea id="prof-achievements" rows="3" placeholder="Contoh: Meningkatkan konversi penjualan 35% dalam 6 bulan, Memimpin tim 8 orang meluncurkan aplikasi X" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-teal-500"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Nilai Pribadi & Gaya Komunikasi</label>
+              <input type="text" id="prof-values" placeholder="Contoh: Data-driven, Integritas, Edukatif, Kasual tapi Profesional" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-teal-500">
+            </div>
+          </div>
+        </div>
+      </form>
+    </section>
+
+
+    <!-- 3. IDENTITAS PROFESIONAL MODULE -->
+    <section id="tab-identity" class="tab-content space-y-6 hidden">
+      <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-white">Identitas Profesional Sintetis</h2>
+          <p class="text-slate-400 text-sm">Hasil ekstraksi narasi personal branding berdasarkan profil Anda.</p>
+        </div>
+        <button onclick="generateIdentity()" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-600/30 flex items-center space-x-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          <span>Generasi Narasi Branding</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Bio LinkedIn / Profesional -->
+        <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-base font-semibold text-white flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                <span>Bio Profesional Lengkap (LinkedIn / Portofolio)</span>
+              </h3>
+              <button onclick="copyToClipboard('identity-bio-prof')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700">Salin</button>
+            </div>
+            <p id="identity-bio-prof" class="text-sm text-slate-300 leading-relaxed bg-slate-900/80 p-4 rounded-xl border border-slate-800/80 whitespace-pre-line min-h-[140px]">
+              Klik tombol 'Generasi Narasi Branding' untuk menghasilkan teks bio berdasarkan data profil Anda.
+            </p>
+          </div>
+        </div>
+
+        <!-- Bio Singkat / Social Media -->
+        <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-base font-semibold text-white flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                <span>Bio Singkat (Instagram / Twitter / X)</span>
+              </h3>
+              <button onclick="copyToClipboard('identity-bio-short')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700">Salin</button>
+            </div>
+            <p id="identity-bio-short" class="text-sm text-slate-300 leading-relaxed bg-slate-900/80 p-4 rounded-xl border border-slate-800/80 whitespace-pre-line min-h-[140px]">
+              Klik tombol 'Generasi Narasi Branding' untuk menghasilkan bio singkat.
+            </p>
+          </div>
+        </div>
+
+        <!-- Tagline / Headline LinkedIn -->
+        <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-base font-semibold text-white flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                <span>Tagline & LinkedIn Headline Options</span>
+              </h3>
+              <button onclick="copyToClipboard('identity-tagline')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700">Salin</button>
+            </div>
+            <div id="identity-tagline" class="text-sm text-slate-300 leading-relaxed bg-slate-900/80 p-4 rounded-xl border border-slate-800/80 whitespace-pre-line min-h-[120px]">
+              Pilihan headline menarik akan muncul di sini.
+            </div>
+          </div>
+        </div>
+
+        <!-- Elevator Pitch / Value Proposition -->
+        <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-base font-semibold text-white flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                <span>Pesan Utama & Elevator Pitch (30 Detik)</span>
+              </h3>
+              <button onclick="copyToClipboard('identity-pitch')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700">Salin</button>
+            </div>
+            <p id="identity-pitch" class="text-sm text-slate-300 leading-relaxed bg-slate-900/80 p-4 rounded-xl border border-slate-800/80 whitespace-pre-line min-h-[120px]">
+              Elevator pitch kontekstual akan disintesis berdasarkan keahlian dan nilai pribadi Anda.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 4. STUDIO KONTEN MODULE -->
+    <section id="tab-content" class="tab-content space-y-6 hidden">
+      <div>
+        <h2 class="text-2xl font-bold text-white">Studio Konten Personal Branding</h2>
+        <p class="text-slate-400 text-sm">Hasilkan draf konten otentik & dinamis tanpa template kaku.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Generator Controls -->
+        <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <h3 class="text-base font-semibold text-white border-b border-slate-800 pb-2">Parameter Konten</h3>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Topik Spesifik Konten *</label>
+            <input type="text" id="cnt-topic" placeholder="Contoh: Kesalahan awal belajar data analytics" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Pilar Konten</label>
+            <select id="cnt-type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+              <option value="edukasi">Edukasi & Insight Industry</option>
+              <option value="pengalaman">Cerita Pengalaman & Failure/Success</option>
+              <option value="tips">Tips Praktis & How-To Guide</option>
+              <option value="opini">Opini Tren & Sudut Pandang Kritis</option>
+              <option value="promosi">Promosi Diri / Portfolio Showcasing</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Gaya Bahasa (Tone of Voice)</label>
+            <select id="cnt-tone" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+              <option value="profesional">Profesional & Berbobot</option>
+              <option value="kasual">Kasual & Ringan (Santai)</option>
+              <option value="inspiratif">Inspiratif & Empatis</option>
+              <option value="kritis">Kritis & Analitis</option>
+              <option value="storytelling">Storytelling Mendalam</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Target Audiens</label>
+            <input type="text" id="cnt-audience" placeholder="Contoh: Fresh graduate, Rekruiter IT, Peer designers" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+          </div>
+
+          <button onclick="generateContentDraft()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+            <span>Sintesis Draf Konten</span>
+          </button>
+        </div>
+
+        <!-- Generated Draft Display -->
+        <div class="lg:col-span-2 space-y-4">
+          <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div class="flex justify-between items-center">
+              <h3 class="text-base font-semibold text-white">Hasil Draf Konten Dinamis</h3>
+              <button onclick="copyToClipboard('cnt-output-box')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700">Salin Semua</button>
+            </div>
+
+            <div id="cnt-output-box" class="bg-slate-900 border border-slate-800 rounded-xl p-5 text-sm text-slate-200 space-y-4 min-h-[300px]">
+              <p class="text-slate-500 italic">Isi parameter di sebelah kiri lalu klik 'Sintesis Draf Konten' untuk menghasilkan draf kontekstual unik.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 5. SIMULASI WAWANCARA MODULE -->
+    <section id="tab-interview" class="tab-content space-y-6 hidden">
+      <div>
+        <h2 class="text-2xl font-bold text-white">Simulasi Wawancara Interactive</h2>
+        <p class="text-slate-400 text-sm">Latihan wawancara adaptif dengan pertanyaan dinamis dan umpan balik berbasis metode STAR.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Interview Controls -->
+        <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <h3 class="text-base font-semibold text-white border-b border-slate-800 pb-2">Pengaturan Sesi</h3>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Bidang / Posisi Ditingkat</label>
+            <input type="text" id="int-role" placeholder="Contoh: Senior Fullstack Developer / HR Manager" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Tingkat Kesulitan *</label>
+            <select id="int-difficulty" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+              <option value="mudah">Mudah (Dasar, Motivasi & Karakter)</option>
+              <option value="sedang">Sedang (Situasional, Problem Solving & STAR)</option>
+              <option value="sulit">Sulit (Kasus Kompleks, Stress Test & Leadership)</option>
+            </select>
+          </div>
+
+          <button onclick="startInterviewSession()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>Mulai Pertanyaan Baru</span>
+          </button>
+        </div>
+
+        <!-- Active Interview Arena -->
+        <div class="lg:col-span-2 space-y-6">
+          <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div class="flex justify-between items-center">
+              <span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20" id="int-diff-tag">Tingkat: -</span>
+              <button onclick="speakQuestion()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1.5">
+                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                <span>Putar Audio Pertanyaan (TTS)</span>
+              </button>
+            </div>
+
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800">
+              <span class="text-xs font-semibold text-slate-400 block mb-1">Pertanyaan Pewawancara:</span>
+              <p id="int-question-box" class="text-base md:text-lg font-medium text-white">Klik 'Mulai Pertanyaan Baru' untuk memicu pertanyaan wawancara adaptif.</p>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex justify-between items-center">
+                <label class="block text-xs font-semibold text-slate-300">Jawaban Anda (Tekan Mikrofon untuk Voice Input)</label>
+                <button id="int-stt-btn" onclick="toggleSpeechRecognition()" class="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs font-medium text-amber-400 hover:bg-slate-700 flex items-center space-x-1">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path></svg>
+                  <span id="stt-status-text">Mulai Bicara</span>
+                </button>
+              </div>
+              <textarea id="int-answer-input" rows="5" placeholder="Tuliskan jawaban Anda secara rinci menggunakan kerangka Situasi, Tugas, Aksi, dan Hasil (STAR)..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-blue-500"></textarea>
+            </div>
+
+            <button onclick="evaluateAnswer()" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-teal-600/30">
+              Analisis & Berikan Umpan Balik Kritis
+            </button>
+          </div>
+
+          <!-- Detailed STAR Feedback Result -->
+          <div id="int-feedback-container" class="hidden bg-navy-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <h3 class="text-base font-semibold text-teal-400 border-b border-slate-800 pb-2 flex items-center justify-between">
+              <span>Hasil Analisis Kontekstual & STAR</span>
+              <span id="int-score-badge" class="px-3 py-0.5 rounded-full text-xs bg-teal-500/10 text-teal-300 border border-teal-500/30">Skor: -</span>
+            </h3>
+
+            <div id="int-feedback-content" class="space-y-4 text-sm text-slate-300">
+              <!-- Dynamically populated feedback -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 6. EVALUASI PERSONAL BRANDING MODULE -->
+    <section id="tab-evaluation" class="tab-content space-y-6 hidden">
+      <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-white">Evaluasi & Diagnosis Personal Branding</h2>
+          <p class="text-slate-400 text-sm">Analisis heuristik komprehensif terhadap konsistensi & kesiapan profil Anda.</p>
+        </div>
+        <button onclick="runBrandingEvaluation()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-600/30">
+          Jalankan Evaluasi ulang
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 text-center flex flex-col items-center justify-center space-y-3">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Skor Kesiapan Brand</span>
+          <div class="relative w-36 h-36 flex items-center justify-center">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+              <path class="text-slate-800" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path id="eval-score-ring" class="text-blue-500 stroke-current transition-all duration-1000" stroke-dasharray="0, 100" stroke-width="3.5" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            </svg>
+            <span id="eval-score-num" class="absolute text-3xl font-bold text-white">0</span>
+          </div>
+          <p id="eval-status-text" class="text-sm font-medium text-slate-300">Memerlukan Data</p>
+        </div>
+
+        <div class="lg:col-span-2 bg-navy-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <h3 class="text-base font-semibold text-white border-b border-slate-800 pb-2">Rincian Komponen Penilaian</h3>
+          <div class="space-y-3" id="eval-breakdown-list">
+            <!-- Dynamic breakdowns -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Critical Recommendations -->
+      <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <h3 class="text-base font-semibold text-amber-400 flex items-center space-x-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          <span>Rekomendasi Perbaikan Bertahap (Action Plan)</span>
+        </h3>
+        <div id="eval-recommendations" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Dynamic action plan -->
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 7. PENGATURAN MODULE -->
+    <section id="tab-settings" class="tab-content space-y-6 hidden">
+      <div>
+        <h2 class="text-2xl font-bold text-white">Pengaturan & Manajemen Data</h2>
+        <p class="text-slate-400 text-sm">Kelola data lokal, preferensi, dan cadangkan sesi Anda.</p>
+      </div>
+
+      <div class="bg-navy-900/80 border border-slate-800 rounded-2xl p-6 space-y-6 max-w-3xl">
+        <div>
+          <h3 class="text-base font-semibold text-white mb-1">Cadangkan & Pemulihan Data</h3>
+          <p class="text-xs text-slate-400 mb-4">Ekspor seluruh data profil dan riwayat wawancara ke JSON atau impor kembali.</p>
+          <div class="flex flex-wrap gap-3">
+            <button onclick="exportUserData()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-sm font-semibold transition-all flex items-center space-x-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span>Ekspor Data (JSON)</span>
+            </button>
+            <label class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-sm font-semibold transition-all cursor-pointer flex items-center space-x-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12"></path></svg>
+              <span>Impor Data (JSON)</span>
+              <input type="file" id="import-file-input" accept=".json" class="hidden" onchange="importUserData(event)">
+            </label>
+          </div>
+        </div>
+
+        <div class="border-t border-slate-800 pt-6">
+          <h3 class="text-base font-semibold text-red-400 mb-1">Hapus Semua Data</h3>
+          <p class="text-xs text-slate-400 mb-4">Tindakan ini akan mengosongkan seluruh data yang tersimpan di localStorage browser ini.</p>
+          <button onclick="resetAllData()" class="px-4 py-2.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 rounded-xl text-sm font-semibold transition-all">
+            Reset Seluruh Aplikasi
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /* ==========================================================================
+       1. STATE MANAGEMENT & INITIALIZATION
+       ========================================================================== */
+    const STORAGE_KEY = 'persona_ai_data_v2';
+
+    let appState = {
+      profile: {
+        fullname: '',
+        status: '',
+        field: '',
+        targetRole: '',
+        hardSkills: '',
+        softSkills: '',
+        achievements: '',
+        values: ''
+      },
+      interviewHistory: [],
+      currentQuestion: null,
+      brandScore: 0,
+      speechRecognition: null,
+      isListening: false
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadStateFromStorage();
+      setupSpeechRecognition();
+      updateDashboardUI();
+      switchTab('dashboard');
+    });
+
+    function saveStateToStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        profile: appState.profile,
+        interviewHistory: appState.interviewHistory,
+        brandScore: appState.brandScore
+      }));
+      updateSidebarUserInfo();
+    }
+
+    function loadStateFromStorage() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          appState.profile = { ...appState.profile, ...parsed.profile };
+          appState.interviewHistory = parsed.interviewHistory || [];
+          appState.brandScore = parsed.brandScore || 0;
+          populateProfileForm();
+        } catch (e) {
+          console.error("Gagal memuat data dari localStorage", e);
+        }
+      }
+      updateSidebarUserInfo();
+    }
+
+    function updateSidebarUserInfo() {
+      const nameEl = document.getElementById('sidebar-user-name');
+      const roleEl = document.getElementById('sidebar-user-role');
+      const initialEl = document.getElementById('sidebar-avatar-initial');
+
+      if (appState.profile.fullname) {
+        nameEl.innerText = appState.profile.fullname;
+        initialEl.innerText = appState.profile.fullname.charAt(0).toUpperCase();
+      } else {
+        nameEl.innerText = 'Pengguna';
+        initialEl.innerText = 'U';
+      }
+
+      roleEl.innerText = appState.profile.targetRole || appState.profile.field || 'Belum Diatur';
+    }
+
+    /* ==========================================================================
+       2. NAVIGATION & UI HELPERS
+       ========================================================================== */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      const activeTab = document.getElementById(`tab-${tabId}`);
+      if (activeTab) activeTab.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white', 'shadow-lg');
+        btn.classList.add('text-slate-400', 'hover:bg-slate-800/60');
+      });
+
+      const activeBtn = document.getElementById(`nav-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-400', 'hover:bg-slate-800/60');
+        activeBtn.classList.add('bg-blue-600', 'text-white', 'shadow-lg');
+      }
+
+      // Trigger automatic tab specific refresh
+      if (tabId === 'dashboard') updateDashboardUI();
+      if (tabId === 'evaluation') runBrandingEvaluation();
+    }
+
+    function toggleMobileMenu() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('hidden');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const bgColors = {
+        success: 'bg-emerald-600 border-emerald-500',
+        error: 'bg-red-600 border-red-500',
+        info: 'bg-blue-600 border-blue-500'
+      };
+
+      toast.className = `pointer-events-auto text-white text-xs md:text-sm px-4 py-3 rounded-xl border shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 flex items-center justify-between space-x-3 ${bgColors[type] || bgColors.info}`;
+      toast.innerHTML = `<span>${message}</span>`;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function copyToClipboard(elementId) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const text = el.innerText || el.value;
+
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      showToast('Teks berhasil disalin ke clipboard!', 'success');
+    }
+
+    /* ==========================================================================
+       3. PROFIL & DASHBOARD LOGIC
+       ========================================================================== */
+    function populateProfileForm() {
+      document.getElementById('prof-fullname').value = appState.profile.fullname || '';
+      document.getElementById('prof-status').value = appState.profile.status || '';
+      document.getElementById('prof-field').value = appState.profile.field || '';
+      document.getElementById('prof-target-role').value = appState.profile.targetRole || '';
+      document.getElementById('prof-hard-skills').value = appState.profile.hardSkills || '';
+      document.getElementById('prof-soft-skills').value = appState.profile.softSkills || '';
+      document.getElementById('prof-achievements').value = appState.profile.achievements || '';
+      document.getElementById('prof-values').value = appState.profile.values || '';
+    }
+
+    function saveProfileData() {
+      appState.profile = {
+        fullname: document.getElementById('prof-fullname').value.trim(),
+        status: document.getElementById('prof-status').value,
+        field: document.getElementById('prof-field').value.trim(),
+        targetRole: document.getElementById('prof-target-role').value.trim(),
+        hardSkills: document.getElementById('prof-hard-skills').value.trim(),
+        softSkills: document.getElementById('prof-soft-skills').value.trim(),
+        achievements: document.getElementById('prof-achievements').value.trim(),
+        values: document.getElementById('prof-values').value.trim()
+      };
+
+      saveStateToStorage();
+      showToast('Profil berhasil disimpan!', 'success');
+      runBrandingEvaluation();
+    }
+
+    function calculateProfileCompletion() {
+      const fields = Object.values(appState.profile);
+      const filled = fields.filter(val => val && val.length > 0).length;
+      return Math.round((filled / fields.length) * 100);
+    }
+
+    function updateDashboardUI() {
+      const completion = calculateProfileCompletion();
+      document.getElementById('dash-stat-profile').innerText = `${completion}%`;
+      document.getElementById('dash-stat-bar-profile').style.width = `${completion}%`;
+
+      if (appState.profile.fullname) {
+        document.getElementById('dash-greeting').innerText = `Halo, ${appState.profile.fullname}!`;
+        document.getElementById('dash-summary').innerText = `Kesiapan personal branding Anda di bidang ${appState.profile.field || 'profesional'} sedang dipantau secara langsung oleh mesin analitis PersonaAI.`;
+      }
+
+      document.getElementById('dash-stat-brand').innerText = `${appState.brandScore} / 100`;
+      document.getElementById('dash-stat-interview').innerText = appState.interviewHistory.length;
+
+      // Dynamic Action Cards
+      const cardContainer = document.getElementById('dash-action-cards');
+      cardContainer.innerHTML = '';
+
+      const actions = [
+        {
+          title: 'Perbarui Profil',
+          desc: 'Tambahkan pencapaian terbaru untuk mempertajam sintesis narasi.',
+          tab: 'profile',
+          color: 'border-blue-500/30'
+        },
+        {
+          title: 'Sintesis Identitas',
+          desc: 'Buat LinkedIn Headline dan Elevator Pitch unik.',
+          tab: 'identity',
+          color: 'border-teal-500/30'
+        },
+        {
+          title: 'Simulasi Wawancara',
+          desc: 'Uji kesiapan Anda menjawab pertanyaan sulit.',
+          tab: 'interview',
+          color: 'border-amber-500/30'
+        }
+      ];
+
+      actions.forEach(act => {
+        const div = document.createElement('div');
+        div.className = `p-4 rounded-xl bg-slate-900/90 border ${act.color} hover:border-slate-600 transition-all cursor-pointer`;
+        div.onclick = () => switchTab(act.tab);
+        div.innerHTML = `
+          <h4 class="font-semibold text-sm text-white mb-1">${act.title}</h4>
+          <p class="text-xs text-slate-400">${act.desc}</p>
+        `;
+        cardContainer.appendChild(div);
+      });
+    }
+
+
+    /* ==========================================================================
+       4. IDENTITAS PROFESIONAL MODULE (ADVANCED SYNTHESIS)
+       ========================================================================== */
+    function generateIdentity() {
+      const p = appState.profile;
+      if (!p.fullname || !p.field) {
+        showToast('Isi nama dan bidang utama di modul Profil Saya terlebih dahulu.', 'error');
+        switchTab('profile');
+        return;
+      }
+
+      const hardSkillsArr = p.hardSkills ? p.hardSkills.split(',').map(s => s.trim()) : ['keahlian teknis'];
+      const topSkill = hardSkillsArr[0] || 'spesialisasi utama';
+      const secondarySkill = hardSkillsArr[1] || 'pemecahan masalah';
+
+      // Dynamic Professional Bio
+      const bioProf = `Saya seorang ${p.status || 'profesional'} berdedikasi di bidang ${p.field}, berfokus pada pengembangan ${topSkill} dan ${secondarySkill}. Berbekal pengalaman dalam ${p.achievements || 'menangani berbagai proyek strategis'}, saya berikhtiar menghadirkan solusi yang efisien, terukur, dan berdampak nyata.
+
+Gaya kerja saya berorientasi pada ${p.values || 'integritas dan hasil berstandar tinggi'}, didukung kemampuan ${p.softSkills || 'kolaborasi tim dan komunikasi adaptif'}. Saya terus beradaptasi dengan perkembangan industri untuk memberikan nilai tambah berkelanjutan pada setiap organisasi tempat saya berkontribusi.`;
+
+      // Short Bio
+      const bioShort = `${p.fullname} | ${p.targetRole || p.field} | Spesialis dalam ${topSkill} & ${secondarySkill}. Berfokus pada ${p.values || 'dampak nyata'}. 🚀`;
+
+      // Headline Options
+      const headlines = `1. ${p.targetRole || p.field} | Membantu Organisasi Mengoptimalkan ${topSkill} & ${secondarySkill}
+2. ${p.field} Enthusiast | Specialist in ${topSkill} | Driven by ${p.values || 'Innovation'}
+3. ${p.status || 'Professional'} @ ${p.field} — Fokus pada ${p.achievements ? 'Inovasi Berdampak' : topSkill}`;
+
+      // Elevator Pitch
+      const pitch = `"Halo, saya ${p.fullname}, seorang ${p.status || 'praktisi'} di bidang ${p.field}. Fokus utama saya adalah memanfaatkan ${topSkill} untuk mengatasi tantangan operasional dan mendorong pertumbuhan strategis. Salah satu pencapaian yang saya banggakan adalah ${p.achievements || 'berhasil menyelesaikan tantangan kompleks dengan hasil memuaskan'}. Saya selalu antusias untuk berkolaborasi dan membawa perspektif ${p.values || 'solutif'} dalam tim."`;
+
+      document.getElementById('identity-bio-prof').innerText = bioProf;
+      document.getElementById('identity-bio-short').innerText = bioShort;
+      document.getElementById('identity-tagline').innerText = headlines;
+      document.getElementById('identity-pitch').innerText = pitch;
+
+      showToast('Narasi identitas profesional berhasil disintesis!', 'success');
+    }
+
+
+    /* ==========================================================================
+       5. STUDIO KONTEN MODULE (NON-TEMPLATE DYNAMIC GENERATION)
+       ========================================================================== */
+    function generateContentDraft() {
+      const topic = document.getElementById('cnt-topic').value.trim();
+      const type = document.getElementById('cnt-type').value;
+      const tone = document.getElementById('cnt-tone').value;
+      const audience = document.getElementById('cnt-audience').value.trim() || 'Rekan Profesional & Praktisi Industri';
+
+      if (!topic) {
+        showToast('Masukkan topik spesifik konten terlebih dahulu.', 'error');
+        return;
+      }
+
+      const p = appState.profile;
+      const userSkill = p.hardSkills ? p.hardSkills.split(',')[0].trim() : 'dunia kerja';
+
+      let hook = '';
+      let body = '';
+      let cta = '';
+      let hashtags = '';
+      let ideas = '';
+
+      // Synthesis Logic based on content type and tone
+      if (type === 'edukasi') {
+        hook = tone === 'kritis' 
+          ? `Banyak orang salah kaprah tentang ${topic}. Ini fakta yang jarang dibahas:`
+          : `Ingin menguasai ${topic}? Berikut 3 prinsip penting berdasarkan pengalaman di ${p.field || 'lapangan'}:`;
+        
+        body = `Dalam ranah ${p.field || 'industri'}, pemahaman tentang ${topic} sering kali dianggap sepele. Padahal, penerapan ${userSkill} yang tepat dapat menjadi pembeda utama antara hasil rata-rata dan pencapaian luar biasa.\n\nBerikut langkah taktis yang bisa langsung Anda coba:\n1. Identifikasi masalah mendasar sebelum melompat ke solusi.\n2. Manfaatkan data dan ${userSkill} untuk validasi keputusan.\n3. Evaluasi secara berkala tanpa rasa takut akan revisi.`;
+        
+        cta = `Bagaimana pendekatan Anda dalam menangani ${topic} selama ini? Mari diskusi di kolom komentar!`;
+      } else if (type === 'pengalaman') {
+        hook = `Pernah merasa stagnan saat berhadapan dengan ${topic}? Saya pernah di posisi tersebut.`;
+        
+        body = `Saat menangani ${p.achievements || 'proyek penting'}, saya menyadari bahwa tantangan terbesar bukan hanya teknis, melainkan bagaimana kita mengelola ${topic}.\n\nMelalui pendekatan yang berfokus pada ${p.values || 'pemecahan masalah konkrit'}, saya belajar bahwa kegagalan kecil saat eksekusi adalah data berharga untuk penyempurnaan berikutnya.`;
+        
+        cta = `Pernah mengalami situasi serupa di bidang Anda? Ceritakan pengalaman Anda!`;
+      } else {
+        hook = `3 Strategi Taktis Menghadapi ${topic} untuk ${audience}:`;
+        body = `Berdasarkan pembelajaran di ${p.field || 'karir saya'}, berikut adalah tips ringkas yang efektif:\n• Fokus pada hasil akhir yang terukur.\n• Terapkan ${userSkill} secara konsisten.\n• Bangun komunikasi terbuka dengan stakeholder.`;
+        cta = `Simpan postingan ini untuk referensi Anda berikutnya!`;
+      }
+
+      hashtags = `#${(p.field || 'Career').replace(/\s+/g, '')} #${userSkill.replace(/\s+/g, '')} #PersonalBranding #${topic.replace(/\s+/g, '')} #ProfessionalGrowth`;
+      ideas = `• Format Visual: Carousel 4 slide dengan infografis ringkas.\n• Ide Pembahasan Lanjutan: Buat studi kasus nyata berdurasi 60 detik untuk konten video pendek (Reels/TikTok).`;
+
+      const outputContainer = document.getElementById('cnt-output-box');
+      outputContainer.innerHTML = `
+        <div>
+          <span class="text-xs font-bold text-blue-400 uppercase tracking-wider block mb-1">[ HOOK / KALIMAT PEMBUKA ]</span>
+          <p class="font-semibold text-white text-base">${hook}</p>
+        </div>
+        <div class="border-t border-slate-800 pt-3">
+          <span class="text-xs font-bold text-teal-400 uppercase tracking-wider block mb-1">[ ISI KONTEN / CAPTION ]</span>
+          <p class="whitespace-pre-line text-slate-200">${body}</p>
+        </div>
+        <div class="border-t border-slate-800 pt-3">
+          <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block mb-1">[ CALL TO ACTION (CTA) ]</span>
+          <p class="text-slate-200 font-medium">${cta}</p>
+        </div>
+        <div class="border-t border-slate-800 pt-3">
+          <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider block mb-1">[ HASHTAG RELEVAN ]</span>
+          <p class="text-slate-400 text-xs">${hashtags}</p>
+        </div>
+        <div class="border-t border-slate-800 pt-3 bg-slate-950/50 p-3 rounded-lg border border-slate-800">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">[ IDE PENGEMBANGAN FORMAT ]</span>
+          <p class="text-xs text-slate-300 whitespace-pre-line">${ideas}</p>
+        </div>
+      `;
+
+      showToast('Draf konten berhasil disintesis!', 'success');
+    }
+
+
+    /* ==========================================================================
+       6. SIMULASI WAWANCARA MODULE (DYNAMIC QUESTIONS & STAR EVALUATION)
+       ========================================================================== */
+    const QUESTION_BANK = {
+      mudah: [
+        "Ceritakan tentang diri Anda dan mengapa Anda tertarik berkarier di bidang {role}?",
+        "Apa keahlian utama yang paling Anda andalkan sebagai {role}, dan bagaimana Anda mengembangkannya?",
+        "Mengapa kami harus mempertimbangkan Anda untuk posisi di bidang {role} dibanding kandidat lain?"
+      ],
+      sedang: [
+        "Ceritakan situasi nyata saat Anda menghadapi kendala teknis atau tenggat waktu ketat sebagai {role}. Bagaimana Anda mengatasinya?",
+        "Berikan contoh bagaimana Anda menerapkan kerangka pemecahan masalah saat menangani proyek berisiko di bidang {role}.",
+        "Bagaimana Anda mengomunikasikan ide atau perubahan kompleks kepada stakeholder yang memiliki latar belakang berbeda?"
+      ],
+      sulit: [
+        "Ceritakan pengalaman ketika keputusan strategis Anda di bidang {role} mengalami kegagalan atau penolakan keras. Apa langkah mitigasi Anda?",
+        "Jika Anda dihadapkan pada dua prioritas kritis yang saling berbenturan dalam tim {role}, bagaimana matriks pengambilan keputusan Anda?",
+        "Bagaimana Anda mengevaluasi efektivitas kepemimpinan dan integritas Anda ketika berada di bawah tekanan tinggi dari manajemen?"
+      ]
+    };
+
+    function startInterviewSession() {
+      const difficulty = document.getElementById('int-difficulty').value;
+      const roleInput = document.getElementById('int-role').value.trim() || appState.profile.targetRole || appState.profile.field || 'Teknologi & Bisnis';
+
+      const questions = QUESTION_BANK[difficulty] || QUESTION_BANK.mudah;
+      const randomIndex = Math.floor(Math.random() * questions.length);
+      const selectedQ = questions[randomIndex].replace(/{role}/g, roleInput);
+
+      appState.currentQuestion = {
+        question: selectedQ,
+        difficulty: difficulty,
+        role: roleInput
+      };
+
+      document.getElementById('int-question-box').innerText = selectedQ;
+      document.getElementById('int-diff-tag').innerText = `Tingkat: ${difficulty.toUpperCase()} | Role: ${roleInput}`;
+      document.getElementById('int-answer-input').value = '';
+      document.getElementById('int-feedback-container').classList.add('hidden');
+
+      showToast('Pertanyaan wawancara baru dimuat.', 'info');
+    }
+
+    function speakQuestion() {
+      if (!appState.currentQuestion) {
+        showToast('Mulai pertanyaan baru terlebih dahulu.', 'error');
+        return;
+      }
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Reset previous speech
+        const utterance = new SpeechSynthesisUtterance(appState.currentQuestion.question);
+        utterance.lang = 'id-ID';
+        utterance.rate = 0.95;
+        window.speechSynthesis.speak(utterance);
+      } else {
+        showToast('Web Speech API (TTS) tidak didukung di browser ini.', 'error');
+      }
+    }
+
+    function setupSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        appState.speechRecognition = new SpeechRecognition();
+        appState.speechRecognition.continuous = true;
+        appState.speechRecognition.interimResults = true;
+        appState.speechRecognition.lang = 'id-ID';
+
+        appState.speechRecognition.onresult = (event) => {
+          let transcript = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            transcript += event.results[i][0].transcript;
+          }
+          const inputEl = document.getElementById('int-answer-input');
+          inputEl.value = transcript;
+        };
+
+        appState.speechRecognition.onerror = (e) => {
+          console.error('Speech recognition error:', e);
+          stopListening();
+        };
+
+        appState.speechRecognition.onend = () => {
+          stopListening();
+        };
+      }
+    }
+
+    function toggleSpeechRecognition() {
+      if (!appState.speechRecognition) {
+        showToast('Pengenalan Suara (Speech-to-Text) tidak didukung browser ini.', 'error');
+        return;
+      }
+
+      if (appState.isListening) {
+        stopListening();
+      } else {
+        startListening();
+      }
+    }
+
+    function startListening() {
+      try {
+        appState.speechRecognition.start();
+        appState.isListening = true;
+        document.getElementById('stt-status-text').innerText = 'Mendengarkan... (Klik untuk stop)';
+        document.getElementById('int-stt-btn').classList.add('bg-red-900/50', 'text-red-400');
+        showToast('Mulai bicara...', 'info');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function stopListening() {
+      if (appState.speechRecognition && appState.isListening) {
+        appState.speechRecognition.stop();
+        appState.isListening = false;
+        document.getElementById('stt-status-text').innerText = 'Mulai Bicara';
+        document.getElementById('int-stt-btn').classList.remove('bg-red-900/50', 'text-red-400');
+      }
+    }
+
+    function evaluateAnswer() {
+      const answer = document.getElementById('int-answer-input').value.trim();
+      if (!answer) {
+        showToast('Masukkan jawaban Anda terlebih dahulu.', 'error');
+        return;
+      }
+
+      if (!appState.currentQuestion) {
+        showToast('Mulai pertanyaan baru terlebih dahulu.', 'error');
+        return;
+      }
+
+      const wordCount = answer.split(/\s+/).length;
+      
+      // Contextual STAR Indicators check
+      const situationKeywords = ['saat', 'ketika', 'dalam proyek', 'pengalaman', 'sewaktu', 'di perusahaan', 'saat itu'];
+      const taskKeywords = ['tugas', 'tanggung jawab', 'target', 'peran', 'tantangan', 'harus'];
+      const actionKeywords = ['saya melakukan', 'mengembangkan', 'menerapkan', 'merancang', 'berkolaborasi', 'memimpin', 'menggunakan', 'solusi'];
+      const resultKeywords = ['hasilnya', 'berhasil', 'meningkatkan', 'mencapai', 'skor', '%', 'efisiensi', 'dampak'];
+
+      const hasSituation = situationKeywords.some(kw => answer.toLowerCase().includes(kw));
+      const hasTask = taskKeywords.some(kw => answer.toLowerCase().includes(kw));
+      const hasAction = actionKeywords.some(kw => answer.toLowerCase().includes(kw));
+      const hasResult = resultKeywords.some(kw => answer.toLowerCase().includes(kw));
+
+      let score = 50; // base score
+      if (wordCount >= 40) score += 15;
+      if (wordCount >= 80) score += 10;
+      if (hasSituation) score += 6;
+      if (hasTask) score += 6;
+      if (hasAction) score += 7;
+      if (hasResult) score += 6;
+
+      score = Math.min(score, 100);
+
+      // Construct customized feedback
+      const feedbackContainer = document.getElementById('int-feedback-container');
+      const feedbackContent = document.getElementById('int-feedback-content');
+      const scoreBadge = document.getElementById('int-score-badge');
+
+      scoreBadge.innerText = `Skor Evaluasi: ${score} / 100`;
+
+      const revisedExample = `Contoh Jawaban Perbaikan Berbasis STAR:\n"Saat menangani proyek di bidang ${appState.currentQuestion.role} [Situation], tugas utama saya adalah mengatasi efisiensi tim yang menurun [Task]. Saya kemudian menerapkan metode ${appState.profile.hardSkills || 'sistematis'} dan memimpin koordinasi lintas tim [Action]. Hasilnya, kami berhasil menyelesaikan proyek 20% lebih cepat dari target awal [Result]."`;
+
+      feedbackContent.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+            <h4 class="font-semibold text-xs text-slate-400 uppercase mb-2">Analisis Kelengkapan & Panjang</h4>
+            <p class="text-slate-200">Panjang Jawaban: <strong class="text-white">${wordCount} kata</strong>. ${wordCount < 40 ? 'Jawaban terlalu singkat. Jelaskan konteks dengan lebih rinci.' : 'Panjang jawaban sudah memadai untuk menyampaikan argumen.'}</p>
+          </div>
+          <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+            <h4 class="font-semibold text-xs text-slate-400 uppercase mb-2">Deteksi Komponen STAR</h4>
+            <div class="flex flex-wrap gap-1.5 text-xs">
+              <span class="px-2 py-1 rounded ${hasSituation ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}">Situation</span>
+              <span class="px-2 py-1 rounded ${hasTask ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}">Task</span>
+              <span class="px-2 py-1 rounded ${hasAction ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}">Action</span>
+              <span class="px-2 py-1 rounded ${hasResult ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}">Result</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 space-y-2">
+          <h4 class="font-semibold text-amber-400 text-xs uppercase">Rekomendasi Konstruktif:</h4>
+          <p class="text-slate-300 leading-relaxed">
+            ${!hasResult ? '• Anda belum secara eksplisit menyebutkan kuantifikasi HASIL (Result). Sebutkan angka atau dampak nyata dari tindakan Anda.' : '• Bagus! Anda menyertakan indikator hasil.'}
+            <br>
+            ${!hasAction ? '• Tunjukkan tindakan spesifik (Action) yang ANDA ambil, bukan sekadar tindakan tim secara umum.' : '• Bagian aksi sudah terlihat.'}
+          </p>
+        </div>
+
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+          <span class="text-xs font-bold text-teal-400 uppercase block mb-1">Rekomendasi Jawaban Perbaikan Disesuaikan Profil Anda:</span>
+          <p class="text-xs text-slate-300 font-mono whitespace-pre-line leading-relaxed">${revisedExample}</p>
+        </div>
+      `;
+
+      feedbackContainer.classList.remove('hidden');
+
+      // Save to history
+      appState.interviewHistory.push({
+        timestamp: new Date().toISOString(),
+        question: appState.currentQuestion.question,
+        answer: answer,
+        score: score
+      });
+      saveStateToStorage();
+    }
+
+
+    /* ==========================================================================
+       7. EVALUASI PERSONAL BRANDING LOGIC
+       ========================================================================== */
+    function runBrandingEvaluation() {
+      const p = appState.profile;
+      
+      let profileScore = calculateProfileCompletion() * 0.4; // 40% weight
+      let contentScore = (p.hardSkills && p.achievements) ? 30 : 10; // 30% weight
+      let practiceScore = Math.min(appState.interviewHistory.length * 10, 30); // 30% weight
+
+      let totalScore = Math.round(profileScore + contentScore + practiceScore);
+      appState.brandScore = totalScore;
+      saveStateToStorage();
+
+      document.getElementById('dash-stat-brand').innerText = `${totalScore} / 100`;
+
+      // Update ring UI
+      const scoreRing = document.getElementById('eval-score-ring');
+      const scoreNum = document.getElementById('eval-score-num');
+      const statusText = document.getElementById('eval-status-text');
+
+      if (scoreRing && scoreNum) {
+        scoreRing.setAttribute('stroke-dasharray', `${totalScore}, 100`);
+        scoreNum.innerText = totalScore;
+
+        if (totalScore >= 80) statusText.innerText = 'Sangat Kuat & Siap Kerja';
+        else if (totalScore >= 50) statusText.innerText = 'Cukup Baik (Perlu Optimalisasi)';
+        else statusText.innerText = 'Memerlukan Kelengkapan Data';
+      }
+
+      // Breakdown List
+      const breakdownList = document.getElementById('eval-breakdown-list');
+      if (breakdownList) {
+        breakdownList.innerHTML = `
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-slate-300">Kelengkapan Form Profil</span>
+            <span class="font-semibold text-white">${calculateProfileCompletion()}%</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-slate-300">Kedalaman Portofolio & Keahlian</span>
+            <span class="font-semibold text-white">${p.achievements ? 'Terverifikasi' : 'Kurang Rinci'}</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-slate-300">Aktivitas Latihan Wawancara</span>
+            <span class="font-semibold text-white">${appState.interviewHistory.length} Sesi Terdata</span>
+          </div>
+        `;
+      }
+
+      // Action Plan Recommendations
+      const recContainer = document.getElementById('eval-recommendations');
+      if (recContainer) {
+        recContainer.innerHTML = '';
+        const recs = [];
+
+        if (!p.achievements) {
+          recs.push({
+            step: 'Langkah 1',
+            title: 'Tuliskan Pencapaian Terukur',
+            desc: 'Tambahkan minimal 1 pencapaian berbasis data pada profil Anda untuk meningkatkan kredibilitas.'
+          });
+        }
+        if (appState.interviewHistory.length < 2) {
+          recs.push({
+            step: 'Langkah 2',
+            title: 'Tingkatkan Frekuensi Latihan Wawancara',
+            desc: 'Selesaikan minimal 2 simulasi wawancara pada tingkat kesulitan Sedang atau Sulit.'
+          });
+        }
+        if (!p.values) {
+          recs.push({
+            step: 'Langkah 3',
+            title: 'Definisikan Nilai Personal',
+            desc: 'Tentukan gaya komunikasi dan nilai unik yang membedakan Anda dari praktisi lain.'
+          });
+        }
+
+        if (recs.length === 0) {
+          recs.push({
+            step: 'Status Optimum',
+            title: 'Profil Anda Sudah Sangat Baik!',
+            desc: 'Pertahankan keaktifan dengan terus memperbarui studio konten dan berlatih simulasi wawancara.'
+          });
+        }
+
+        recs.forEach(r => {
+          const div = document.createElement('div');
+          div.className = 'bg-slate-900 p-4 rounded-xl border border-slate-800';
+          div.innerHTML = `
+            <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block mb-1">${r.step}</span>
+            <h4 class="text-sm font-semibold text-white mb-1">${r.title}</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">${r.desc}</p>
+          `;
+          recContainer.appendChild(div);
+        });
+      }
+    }
+
+
+    /* ==========================================================================
+       8. PENGATURAN & EXPORT / IMPORT LOGIC
+       ========================================================================== */
+    function exportUserData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `PersonaAI_Backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Data berhasil diekspor ke berkas JSON.', 'success');
+    }
+
+    function importUserData(event) {
+      const fileReader = new FileReader();
+      fileReader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported.profile) {
+            appState = { ...appState, ...imported };
+            saveStateToStorage();
+            populateProfileForm();
+            updateDashboardUI();
+            showToast('Data berhasil dipulihkan dari berkas!', 'success');
+          } else {
+            showToast('Format file JSON tidak sesuai.', 'error');
+          }
+        } catch (err) {
+          showToast('Gagal membaca berkas JSON.', 'error');
+        }
+      };
+      if (event.target.files[0]) {
+        fileReader.readAsText(event.target.files[0]);
+      }
+    }
+
+    function resetAllData() {
+      if (window.confirm('Apakah Anda yakin ingin menghapus seluruh data yang tersimpan? Tindakan ini tidak dapat dibatalkan.')) {
+        localStorage.removeItem(STORAGE_KEY);
+        appState = {
+          profile: { fullname: '', status: '', field: '', targetRole: '', hardSkills: '', softSkills: '', achievements: '', values: '' },
+          interviewHistory: [],
+          currentQuestion: null,
+          brandScore: 0
+        };
+        populateProfileForm();
+        updateDashboardUI();
+        showToast('Seluruh data berhasil dibersihkan.', 'info');
+      }
+    }
+  </script>
+</body>
+</html>
